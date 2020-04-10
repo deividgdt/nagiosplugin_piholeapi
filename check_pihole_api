@@ -1,0 +1,72 @@
+#!/bin/bash
+# Nagios plugin to work with Pihole
+########### By @deividgdt ###########
+plugin_version="1.0"
+#####################################
+
+function Info() {
+	echo "plugin by @deividgdt https://github.com/deividgdt version: ${plugin_version}"
+	exit 0;
+}
+
+function UniqueClients() {
+	unique_clients=$(cat ${pihole_api_tempfile} | grep unique_clients | cut -f2 -d":")
+	echo "There are = ${unique_clients} hosts UP|Total=${unique_clients}"
+	exit 0;
+}
+
+function DnsQueriesToday() {
+	dns_queries_today=$(cat ${pihole_api_tempfile} | grep dns_queries_today | cut -f2 -d":")
+	echo "DNS queries today = ${dns_queries_today}|Total=${dns_queries_today}"
+	exit 0;
+}
+
+function AdsBlockedToday() {
+	ads_percentage_today=$(cat ${pihole_api_tempfile} | grep ads_percentage_today | cut -f2 -d":")
+	ads_blocked_today=$(cat ${pihole_api_tempfile} | grep ads_blocked_today | cut -f2 -d":")
+	echo "ADS blocked today = ${ads_blocked_today}, Percent = ${ads_percentage_today} %|Total=${ads_blocked_today} Percentage=${ads_percentage_today}%"
+	exit 0;
+}
+
+if [ $# -eq 0 ]; then
+	echo "Usage $0 -h pihole_ipaddress -o [ clients || queries || ads ] || -i"
+	exit 1;
+fi
+
+# The options passed by the user
+while getopts ":h:o:i" opt; do
+	case "$opt" in
+		h) pihole_ipadd=$OPTARG						;;
+		o) api_obj_call=$OPTARG						;;
+		i) Info; exit 0								;;
+		*) echo "Invalid option. -$OPTARG"; exit 1	;;
+	esac
+done
+
+# The values passed by the user
+if [ -z ${pihole_ipadd} ]; then 
+	echo "Please enter the Pihole IP address as follow: -h pihole_ipaddress"; 
+	exit 1;
+fi	
+if [ -z ${api_obj_call} ]; then 
+	echo "Please pass a value to the option -o as follow: -o [ clients || queries || ads ]"; 
+	exit 1;
+else
+	pihole_api_tempfile="/usr/lib/nagios/plugins/pihole_api.tmp"
+	pihole_api_output=$(curl http://${pihole_ipadd}/admin/api.php?summary 2> /dev/null | sed 's/","/\n/g ; s/"//g' > ${pihole_api_tempfile})
+
+	# Check what function to call
+	if [[ "$api_obj_call" == "clients" ]]; then
+		UniqueClients
+	elif [[ "$api_obj_call" == "queries" ]]; then
+		DnsQueriesToday
+	elif [[ "$api_obj_call" == "ads" ]]; then
+		AdsBlockedToday
+	else
+		echo "Incorrect value $api_obj_call"
+		exit 1;
+	fi
+	
+	# Just delete the temp file
+	rm -f ${pihole_api_tempfile}
+fi
