@@ -1,45 +1,130 @@
 #!/bin/bash
-# Nagios plugin to work with Pihole
+# Nagios plugin to work with Pihole API
 ########### By @deividgdt ###########
-plugin_version="1.0"
+plugin_version="1.2"
 #####################################
 
-function Info() {
-	echo "plugin by @deividgdt https://github.com/deividgdt version: ${plugin_version}"
-	exit 0;
+function info() {
+	case "$1" in
+		token)
+			echo "The file ${api_token_file} does not exists."
+			echo "You can get your token from the value WEBPASSWORD in the file /etc/pihole/setupVars.conf"
+			echo "Just put in the file ${api_token_file} and that's it."
+			echo ""
+			echo "EXAMPLE:"
+			echo ">	centreon-engine@centreon # touch ${api_token_file}"
+			echo ">	centreon-engine@centreon # echo 'PASTE_YOUR_TOKEN_HERE' >> ${api_token_file}"
+			exit 1;
+		;;
+		usage)
+			echo "Usage $0 -h pihole_ipaddress -s [ clients || queries || ads ] || -i || -q"
+		;;
+		version)
+			echo "plugin by @deividgdt https://github.com/deividgdt - version: ${plugin_version}"
+		;;
+	esac
 }
 
-function UniqueClients() {
-	unique_clients=$(cat ${pihole_api_tempfile} | grep unique_clients | cut -f2 -d":")
-	echo "There are = ${unique_clients} hosts UP|Total=${unique_clients}"
-	exit 0;
+function apiCall() {
+	local obj=$1
+	local token=$2
+	
+	pihole_api_tempfile="/usr/lib/nagios/plugins/pihole_api.tmp"
+	
+	case $obj in 
+		"summary")
+			pihole_api_output=$(curl http://${pihole_ipadd}/admin/api.php?${obj} 2> /dev/null | sed 's/","/\n/g ; s/"//g' > ${pihole_api_tempfile})
+		;;
+		"getQueryTypes")
+			pihole_api_output=$(curl "http://${pihole_ipadd}/admin/api.php?${obj}&auth=${token}" 2> /dev/null | sed "s,),,g ; s,(,,g ; s/,\"/\n/g ; s/\"//g" > ${pihole_api_tempfile})
+		;;
+	esac
 }
 
-function DnsQueriesToday() {
-	dns_queries_today=$(cat ${pihole_api_tempfile} | grep dns_queries_today | cut -f2 -d":")
-	echo "DNS queries today = ${dns_queries_today}|Total=${dns_queries_today}"
-	exit 0;
+function getApiToken() {
+	# Default token file location
+	api_token_file="/usr/lib/nagios/plugins/apihole.token"
+	
+	# If the file does not exist
+	if [ ! -f ${api_token_file} ]; then
+		echo "Token file ${api_token_file} does not exist"
+		info token
+	else
+		export api_token=$(cat ${api_token_file})
+		# If the the api_token var is NULL because the file is empty (?)
+		if [ -z ${api_token} ]; then 
+			echo "Token is NULL"; 
+			info token 
+		fi
+	fi
 }
 
-function AdsBlockedToday() {
-	ads_percentage_today=$(cat ${pihole_api_tempfile} | grep ads_percentage_today | cut -f2 -d":")
-	ads_blocked_today=$(cat ${pihole_api_tempfile} | grep ads_blocked_today | cut -f2 -d":")
-	echo "ADS blocked today = ${ads_blocked_today}, Percent = ${ads_percentage_today} %|Total=${ads_blocked_today} Percentage=${ads_percentage_today}%"
-	exit 0;
+function functSummary() {
+	apiCall "summary"
+	# The summary option passed
+	case "${summary_opt}" in
+		clients)	
+			unique_clients=$(cat ${pihole_api_tempfile} | grep unique_clients | cut -f2 -d":")
+			echo "THERE ARE ${unique_clients} HOSTS UP|Total=${unique_clients}"
+		;;
+		queries)	
+			dns_queries_today=$(cat ${pihole_api_tempfile} | grep dns_queries_today | cut -f2 -d":")
+			echo "DNS QUERIES TODAY ${dns_queries_today}|Total=${dns_queries_today}"
+		;;
+		ads)		
+			ads_percentage_today=$(cat ${pihole_api_tempfile} | grep ads_percentage_today | cut -f2 -d":")
+			ads_blocked_today=$(cat ${pihole_api_tempfile} | grep ads_blocked_today | cut -f2 -d":")
+			echo "ADS BLOCKED TODAY ${ads_blocked_today}, PERCENTAGE = ${ads_percentage_today} %|Total=${ads_blocked_today} Percentage=${ads_percentage_today}%"
+		;;
+		
+		*)
+			echo "-o summary - Incorrect option";
+			exit 1;
+		;;
+	esac
+}
+
+function functGetQueryTypes() {
+	# This function requires a token
+	getApiToken
+	
+	# Calling the api
+	apiCall "getQueryTypes" "${api_token}"
+	
+	# Local vars for query types
+	local ipv4=$(cat ${pihole_api_tempfile} | grep -io "ipv4:.*" | cut -f2 -d":")
+	local ipv6=$(cat ${pihole_api_tempfile} | grep -io "ipv6:.*" | cut -f2 -d":")
+	local any=$(cat ${pihole_api_tempfile} | grep -io "any:.*" | cut -f2 -d":")
+	local srv=$(cat ${pihole_api_tempfile} | grep -io "srv:.*" | cut -f2 -d":")
+	local soa=$(cat ${pihole_api_tempfile} | grep -io "soa:.*" | cut -f2 -d":")
+	local ptr=$(cat ${pihole_api_tempfile} | grep -io "ptr:.*" | cut -f2 -d":")
+	local txt=$(cat ${pihole_api_tempfile} | grep -io "txt:.*" | sed 's,},,g' | cut -f2 -d":")
+	
+	echo "NUMBER OF QUERIES BY TYPE IPV4=${ipv4} , IPV6=${ipv6} , ANY=${any} , SRV=${srv} , SOA=${soa} , PTR=${ptr} , TXT=${txt}|IPV4=${ipv4} IPV6=${ipv6} ANY=${any} SRV=${srv} SOA=${soa} PTR=${ptr} TXT=${txt}"
+	
 }
 
 if [ $# -eq 0 ]; then
-	echo "Usage $0 -h pihole_ipaddress -o [ clients || queries || ads ] || -i"
+	info "usage"
 	exit 1;
 fi
 
 # The options passed by the user
-while getopts ":h:o:i" opt; do
+while getopts ":h:s:q:i" opt; do
 	case "$opt" in
-		h) pihole_ipadd=$OPTARG						;;
-		o) api_obj_call=$OPTARG						;;
-		i) Info; exit 0								;;
-		*) echo "Invalid option. -$OPTARG"; exit 1	;;
+		h ) 
+			pihole_ipadd=$OPTARG						;;
+		s ) 
+			summary_selected="y"
+			summary_opt=$OPTARG							;;
+		q ) 
+			query_type_selected="y" 					;;
+		i ) 
+			info "version"
+			exit 0										;;
+		\?) 
+			echo "Invalid option. -$OPTARG" 
+			exit 1										;;
 	esac
 done
 
@@ -47,24 +132,16 @@ done
 if [ -z ${pihole_ipadd} ]; then 
 	echo "Please enter the Pihole IP address as follow: -h pihole_ipaddress"; 
 	exit 1;
-fi	
-if [ -z ${api_obj_call} ]; then 
-	echo "Please pass a value to the option -o as follow: -o [ clients || queries || ads ]"; 
-	exit 1;
 else
-	pihole_api_tempfile="/usr/lib/nagios/plugins/pihole_api.tmp"
-	pihole_api_output=$(curl http://${pihole_ipadd}/admin/api.php?summary 2> /dev/null | sed 's/","/\n/g ; s/"//g' > ${pihole_api_tempfile})
-
-	# Check what function to call
-	if [[ "$api_obj_call" == "clients" ]]; then
-		UniqueClients
-	elif [[ "$api_obj_call" == "queries" ]]; then
-		DnsQueriesToday
-	elif [[ "$api_obj_call" == "ads" ]]; then
-		AdsBlockedToday
-	else
-		echo "Incorrect value $api_obj_call"
+	if [[ "${summary_selected}" == "y" ]]; then
+		# Calling the summary function
+		functSummary
 		exit 1;
+	elif [[ "${query_type_selected}" == "y" ]]; then
+		# Calling the Query Types funct
+		functGetQueryTypes
+	else
+		info "usage"
 	fi
 	
 	# Just delete the temp file
