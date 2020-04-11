@@ -1,26 +1,36 @@
 #!/bin/bash
 # Nagios plugin to work with Pihole API
 ########### By @deividgdt ###########
-plugin_version="1.2"
+plugin_version="1.3"
 #####################################
 
 function info() {
 	case "$1" in
 		token)
-			echo "The file ${api_token_file} does not exists."
-			echo "You can get your token from the value WEBPASSWORD in the file /etc/pihole/setupVars.conf"
-			echo "Just put in the file ${api_token_file} and that's it."
+			echo "[i] The file ${api_token_file} does not exist or it's empty."
+			echo "[i] You can get your token from the value WEBPASSWORD in the file /etc/pihole/setupVars.conf"
+			echo "[i] Just put in the file ${api_token_file} and that's it."
 			echo ""
-			echo "EXAMPLE:"
-			echo ">	centreon-engine@centreon # touch ${api_token_file}"
-			echo ">	centreon-engine@centreon # echo 'PASTE_YOUR_TOKEN_HERE' >> ${api_token_file}"
+			echo "[i] Example:"
+			echo "	centreon-engine@centreon # touch ${api_token_file}"
+			echo "	centreon-engine@centreon # echo 'PASTE_YOUR_TOKEN_HERE' >> ${api_token_file}"
 			exit 1;
 		;;
 		usage)
-			echo "Usage $0 -h pihole_ipaddress -s [ clients || queries || ads ] || -i || -q"
+			echo "[i] Usage $0 -h pihole_ipaddress -s [ clients || queries || ads ] || -i || -q"
+			echo ""
+			echo "[i] -s (summary)"
+			echo "	- clients: Number of clients using Pihole as their DNS server"
+			echo "	- queries: Number of DNS queries"
+			echo "	- ads: Number and percentage of ads blocked."
+			echo ""
+			echo "[i] -i (information)"
+			echo "	- show the version of the plugin"
+			echo "[i] -q"
+			echo "	- queries by type AAAA, A, SOA, TXT, PTR, ANY, SRV, IPV4, IPV6"
 		;;
 		version)
-			echo "plugin by @deividgdt https://github.com/deividgdt - version: ${plugin_version}"
+			echo "[v] plugin by @deividgdt https://github.com/deividgdt - version: ${plugin_version}"
 		;;
 	esac
 }
@@ -47,13 +57,12 @@ function getApiToken() {
 	
 	# If the file does not exist
 	if [ ! -f ${api_token_file} ]; then
-		echo "Token file ${api_token_file} does not exist"
 		info token
 	else
 		export api_token=$(cat ${api_token_file})
 		# If the the api_token var is NULL because the file is empty (?)
 		if [ -z ${api_token} ]; then 
-			echo "Token is NULL"; 
+			echo "[e] Token is NULL"; 
 			info token 
 		fi
 	fi
@@ -74,11 +83,12 @@ function functSummary() {
 		ads)		
 			ads_percentage_today=$(cat ${pihole_api_tempfile} | grep ads_percentage_today | cut -f2 -d":")
 			ads_blocked_today=$(cat ${pihole_api_tempfile} | grep ads_blocked_today | cut -f2 -d":")
-			echo "ADS BLOCKED TODAY ${ads_blocked_today}, PERCENTAGE = ${ads_percentage_today} %|Total=${ads_blocked_today} Percentage=${ads_percentage_today}%"
+			echo "ADS BLOCKED TODAY ${ads_blocked_today} , PERCENTAGE = ${ads_percentage_today} %|Total=${ads_blocked_today} Percentage=${ads_percentage_today}%"
 		;;
 		
 		*)
-			echo "-o summary - Incorrect option";
+			echo "Incorrect arugment > ${summary_opt} < for the option -s";
+			info "usage"
 			exit 1;
 		;;
 	esac
@@ -110,7 +120,7 @@ if [ $# -eq 0 ]; then
 fi
 
 # The options passed by the user
-while getopts ":h:s:q:i" opt; do
+while getopts "h:s:iq" opt; do
 	case "$opt" in
 		h ) 
 			pihole_ipadd=$OPTARG						;;
@@ -123,14 +133,14 @@ while getopts ":h:s:q:i" opt; do
 			info "version"
 			exit 0										;;
 		\?) 
-			echo "Invalid option. -$OPTARG" 
+			echo "[e] Invalid option. -$OPTARG" 
 			exit 1										;;
 	esac
 done
 
 # The values passed by the user
 if [ -z ${pihole_ipadd} ]; then 
-	echo "Please enter the Pihole IP address as follow: -h pihole_ipaddress"; 
+	echo "[i] Please enter the Pihole IP address as follow: -h pihole_ipaddress"; 
 	exit 1;
 else
 	if [[ "${summary_selected}" == "y" ]]; then
