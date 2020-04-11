@@ -13,13 +13,13 @@ A Nagios/Centreon Plugin for Pihole API
 ## Usage
 - Usage $0 -h pihole_ipaddress -s [ clients || queries || ads ] || -i || -q
 - s (summary)
- clients: Number of clients using Pihole as their DNS server
- queries: Number of DNS queries
- ads: Number and percentage of ads blocked.
+clients: Number of clients using Pihole as their DNS server
+queries: Number of DNS queries
+ads: Number and percentage of ads blocked.
 - i (information)
- show the version of the plugin
+show the version of the plugin
 - q
- queries by type AAAA, A, SOA, TXT, PTR, ANY, SRV, IPV4, IPV6
+queries by type AAAA, A, SOA, TXT, PTR, ANY, SRV, IPV4, IPV6
 
 ## More info
 Sigue todos los pasos en mi blog
