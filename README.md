@@ -1,5 +1,4 @@
 # Nagios/Centreon Plugin for Pihole API
-A Nagios/Centreon Plugin for Pihole API
 ![](https://deividsdocs.files.wordpress.com/2020/04/nagios-4-logo.jpg)
 
 ## Installation
