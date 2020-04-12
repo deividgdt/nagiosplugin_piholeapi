@@ -11,11 +11,14 @@ A Nagios/Centreon Plugin for Pihole API
 - Get the token from the value ***WEBPASSWORD*** in the file `/etc/pihole/setupVars.conf` and put it in `/usr/lib/nagios/plugin/apihole.token`
 
 ## Usage
-- Usage `./check_pihole_api -h pihole_ipaddress -s [ clients || queries || ads ] || -i || -q`
-- ***-s*** (summary)
-clients: Number of clients using Pihole as their DNS server
-queries: Number of DNS queries
-ads: Number and percentage of ads blocked.
+ Usage `./check_pihole_api -h pihole_ipaddress -s [ clients || queries || ads ] || -i || -q`
++ ***-s*** (summary)
+
+***clients***: Number of clients using Pihole as their DNS server
+
+***queries***: Number of DNS queries
+
+***ads***: Number and percentage of ads blocked.
 - ***-i*** (information)
 show the version of the plugin
 - ***-q***
