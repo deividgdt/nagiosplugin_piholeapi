@@ -12,7 +12,7 @@ A Nagios/Centreon Plugin for Pihole API
 
 ## Usage
 + Usage `./check_pihole_api -h pihole_ipaddress -s [ clients || queries || ads ] || -i || -q`
-    + ***-s*** (summary)
++ ***-s*** (summary)
     + ***clients***: Number of clients using Pihole as their DNS server
     + ***queries***: Number of DNS queries
     + ***ads***: Number and percentage of ads blocked.
