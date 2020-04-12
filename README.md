@@ -1,4 +1,4 @@
-# nagiosplugin_piholeapi
+# Nagios/Centreon Plugin for Pihole API
 A Nagios/Centreon Plugin for Pihole API
 ![](https://deividsdocs.files.wordpress.com/2020/04/nagios-4-logo.jpg)
 
@@ -22,4 +22,5 @@ show the version of the plugin
 queries by type AAAA, A, SOA, TXT, PTR, ANY, SRV, IPV4, IPV6
 
 ## More info
-Sigue todos los pasos en mi blog
+- Sigue todos los pasos en mi blog
+- Buy me a coffe [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U7U01LTQB)
