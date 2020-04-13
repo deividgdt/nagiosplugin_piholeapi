@@ -1,7 +1,7 @@
 #!/bin/bash
 # Nagios plugin to work with Pihole API
 ########### By @deividgdt ###########
-plugin_version="1.3"
+plugin_version="1.4"
 #####################################
 
 function info() {
@@ -39,7 +39,7 @@ function apiCall() {
 	local obj=$1
 	local token=$2
 	
-	pihole_api_tempfile="/usr/lib/nagios/plugins/pihole_api.tmp"
+	pihole_api_tempfile="/usr/lib/nagios/plugins/pihole_api_${obj}.tmp"
 	
 	case $obj in 
 		"summary")
@@ -47,7 +47,10 @@ function apiCall() {
 		;;
 		"getQueryTypes")
 			pihole_api_output=$(curl "http://${pihole_ipadd}/admin/api.php?${obj}&auth=${token}" 2> /dev/null | sed "s,),,g ; s,(,,g ; s/,\"/\n/g ; s/\"//g" > ${pihole_api_tempfile})
+		
 		;;
+		"getQuerySources")
+			pihole_api_output=$(curl "http://${pihole_ipadd}/admin/api.php?${obj}&auth=${token}" 2> /dev/null | sed 's,{"top_sources":{",,g ; s/,"/\n/g ; s/"//g ; s/}//g ; s/|/:/g' > ${pihole_api_tempfile})
 	esac
 }
 
@@ -114,13 +117,30 @@ function functGetQueryTypes() {
 	
 }
 
+function functGetQuerySources() {
+	# This function requires a token
+	getApiToken
+	
+	# Calling the api
+	apiCall "getQuerySources" "${api_token}"
+
+	while read line; do  
+		host_name=$(echo $line | cut -f1 -d":")
+		host_queries=$(echo $line | cut -f3 -d":")
+		message="${message} ${host_name}=${host_queries}"
+	done < ${pihole_api_tempfile}
+	
+	echo "TOP HOSTS BY QUERIES ${message}|${message}" 
+}
+
+
 if [ $# -eq 0 ]; then
 	info "usage"
 	exit 1;
 fi
 
 # The options passed by the user
-while getopts "h:s:iq" opt; do
+while getopts "h:s:iqt" opt; do
 	case "$opt" in
 		h ) 
 			pihole_ipadd=$OPTARG						;;
@@ -132,6 +152,8 @@ while getopts "h:s:iq" opt; do
 		i ) 
 			info "version"
 			exit 0										;;
+		t )
+			query_sources_selected="y"					;;
 		\?) 
 			echo "[e] Invalid option. -$OPTARG" 
 			exit 1										;;
@@ -146,10 +168,14 @@ else
 	if [[ "${summary_selected}" == "y" ]]; then
 		# Calling the summary function
 		functSummary
-		exit 1;
+		exit 0;
 	elif [[ "${query_type_selected}" == "y" ]]; then
 		# Calling the Query Types funct
 		functGetQueryTypes
+		exit 0;
+	elif [[ "${query_sources_selected}" == "y" ]]; then
+		functGetQuerySources
+		exit 0;
 	else
 		info "usage"
 	fi
