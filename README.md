@@ -10,7 +10,7 @@
 - Get the token from the value ***WEBPASSWORD*** in the file `/etc/pihole/setupVars.conf` and put it in `/usr/lib/nagios/plugin/apihole.token`
 
 ## Usage
-+ Usage `./check_pihole_api -h pihole_ipaddress -s [ clients || queries || ads ] || -i || -q`
++ Usage `./check_pihole_api -h pihole_ipaddress -s [ clients || queries || ads ] || -i || -q || -t`
 + ***-s*** (summary)
     + ***clients***: Number of clients using Pihole as their DNS server
     + ***queries***: Number of DNS queries
@@ -19,6 +19,8 @@
 show the version of the plugin
 + ***-q***
 queries by type AAAA, A, SOA, TXT, PTR, ANY, SRV, IPV4, IPV6
++ ***-t***
+Show a TOP of hosts by queries
 
 ## More info
 - Sigue todos los [pasos de instalacion en mi blog](https://deividsdocs.wordpress.com/2020/04/11/plugin-de-centreon-nagios-para-la-api-de-pihole/)
