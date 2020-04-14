@@ -20,7 +20,7 @@ show the version of the plugin
 + ***-q***
 queries by type AAAA, A, SOA, TXT, PTR, ANY, SRV, IPV4, IPV6
 + ***-t***
-Show a TOP of hosts by queries
+Show a TOP of queries by hosts
 
 ## More info
 - Sigue todos los [pasos de instalacion en mi blog](https://deividsdocs.wordpress.com/2020/04/11/plugin-de-centreon-nagios-para-la-api-de-pihole/)
