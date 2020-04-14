@@ -17,7 +17,7 @@ function info() {
 			exit 1;
 		;;
 		usage)
-			echo "[i] Usage $0 -h pihole_ipaddress -s [ clients || queries || ads ] || -i || -q"
+			echo "[i] Usage $0 -h pihole_ipaddress -s [ clients || queries || ads ] || -i || -q || -t"
 			echo ""
 			echo "[i] -s (summary)"
 			echo "	- clients: Number of clients using Pihole as their DNS server"
@@ -26,8 +26,12 @@ function info() {
 			echo ""
 			echo "[i] -i (information)"
 			echo "	- show the version of the plugin"
+			echo ""
 			echo "[i] -q"
 			echo "	- queries by type AAAA, A, SOA, TXT, PTR, ANY, SRV, IPV4, IPV6"
+			echo ""
+			echo "[i] -t"
+			echo "  - Show a TOP number of queries by host"
 		;;
 		version)
 			echo "[v] plugin by @deividgdt https://github.com/deividgdt - version: ${plugin_version}"
@@ -47,7 +51,6 @@ function apiCall() {
 		;;
 		"getQueryTypes")
 			pihole_api_output=$(curl "http://${pihole_ipadd}/admin/api.php?${obj}&auth=${token}" 2> /dev/null | sed "s,),,g ; s,(,,g ; s/,\"/\n/g ; s/\"//g" > ${pihole_api_tempfile})
-		
 		;;
 		"getQuerySources")
 			pihole_api_output=$(curl "http://${pihole_ipadd}/admin/api.php?${obj}&auth=${token}" 2> /dev/null | sed 's,{"top_sources":{",,g ; s/,"/\n/g ; s/"//g ; s/}//g ; s/|/:/g' > ${pihole_api_tempfile})
