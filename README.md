@@ -1,4 +1,4 @@
-# Nagios/Centreon Plugin for Pihole API
+# Nagios/Centreon Plugin for the Pihole API
 ![](https://deividsdocs.files.wordpress.com/2020/04/nagios-4-logo.jpg)
 
 A plugin to extract (almost) all the information from the Pi-hole API.
