@@ -1,7 +1,7 @@
 #!/bin/bash
 # Nagios plugin to work with Pihole API
 ########### By @deividgdt ###########
-plugin_version="1.4"
+plugin_version="1.5"
 #####################################
 
 function info() {
@@ -128,8 +128,22 @@ function functGetQuerySources() {
 	apiCall "getQuerySources" "${api_token}"
 
 	while read line; do  
+		check_columns=$(echo $line | sed 's,:, ,g' | wc -w)
 		host_name=$(echo $line | cut -f1 -d":")
-		host_queries=$(echo $line | cut -f3 -d":")
+		
+		if [[ "${check_columns}" == "3" ]]; then
+			columns="3"
+		elif [[ "${check_columns}" == "2" ]]; then
+			columns="2"
+		else
+			echo "Error formatting the list"
+			exit 1;
+		fi
+		
+		host_queries=$(echo $line | cut -f$columns -d":")
+		
+		if [ -z "${host_queries}" ]; then host_queries="0"; fi
+		
 		message="${message} ${host_name}=${host_queries}"
 	done < ${pihole_api_tempfile}
 	
