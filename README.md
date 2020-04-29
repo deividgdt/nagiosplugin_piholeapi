@@ -26,4 +26,6 @@ Show a TOP number of queries by host
 
 ## More info
 - Sigue todos los [pasos de instalacion en mi blog](https://deividsdocs.wordpress.com/2020/04/11/plugin-de-centreon-nagios-para-la-api-de-pihole/)
-- Buy me a coffe [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U7U01LTQB)
+
+## Buy me a coffe
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U7U01LTQB)
