@@ -1,8 +1,10 @@
 #!/bin/bash
 # Nagios plugin to work with Pihole API
 ########### By @deividgdt ###########
-plugin_version="1.5"
+plugin_version="1.6"
 #####################################
+
+current_dir="$(pwd)"
 
 function info() {
 	case "$1" in
@@ -43,7 +45,7 @@ function apiCall() {
 	local obj=$1
 	local token=$2
 	
-	pihole_api_tempfile="/usr/lib/nagios/plugins/pihole_api_${obj}.tmp"
+	pihole_api_tempfile="${current_dir}/pihole_api_${obj}.tmp"
 	
 	case $obj in 
 		"summary")
@@ -59,7 +61,7 @@ function apiCall() {
 
 function getApiToken() {
 	# Default token file location
-	api_token_file="/usr/lib/nagios/plugins/apihole.token"
+	api_token_file="${current_dir}/apihole.token"
 	
 	# If the file does not exist
 	if [ ! -f ${api_token_file} ]; then
