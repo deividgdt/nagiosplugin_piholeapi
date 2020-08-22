@@ -115,10 +115,11 @@ function functGetQueryTypes() {
 	local any=$(cat ${pihole_api_tempfile} | grep -io "any:.*" | cut -f2 -d":")
 	local srv=$(cat ${pihole_api_tempfile} | grep -io "srv:.*" | cut -f2 -d":")
 	local soa=$(cat ${pihole_api_tempfile} | grep -io "soa:.*" | cut -f2 -d":")
-	local ptr=$(cat ${pihole_api_tempfile} | grep -io "ptr:.*" | cut -f2 -d":")
+	local ptr=$(cat ${pihole_api_tempfile} | grep -xi "ptr:.*"  | cut -f2 -d":")
+	local naptr=$(cat ${pihole_api_tempfile} | grep -io "naptr:.*" | cut -f2 -d":")
 	local txt=$(cat ${pihole_api_tempfile} | grep -io "txt:.*" | sed 's,},,g' | cut -f2 -d":")
 	
-	echo "NUMBER OF QUERIES BY TYPE IPV4=${ipv4} , IPV6=${ipv6} , ANY=${any} , SRV=${srv} , SOA=${soa} , PTR=${ptr} , TXT=${txt}|IPV4=${ipv4} IPV6=${ipv6} ANY=${any} SRV=${srv} SOA=${soa} PTR=${ptr} TXT=${txt}"
+	echo "NUMBER OF QUERIES BY TYPE IPV4=${ipv4} , IPV6=${ipv6} , ANY=${any} , SRV=${srv} , SOA=${soa} , PTR=${ptr} , NAPTR=${naptr} , TXT=${txt}|IPV4=${ipv4} IPV6=${ipv6} ANY=${any} SRV=${srv} SOA=${soa} PTR=${ptr} TXT=${txt}"
 	
 }
 
